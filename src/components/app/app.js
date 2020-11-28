@@ -1,69 +1,97 @@
 import React, { Component } from 'react';
 import './app.css';
+import TasksList from '../tasks-list';
+import TasksFilter from '../tasks-filter/';
+import SearchPanel from '../search-panel';
+import AddTask from '../add-task';
+import TasksCount from '../tasks-counter';
 
 export default class App extends Component {
+    constructor() {
+        super();
+        this.taskCount = 100;
+
+        this.makeNewTask = (text) => {
+                return {
+                    text: text,
+                    important: false,
+                    done: false,
+                    id: this.taskCount++
+                };
+        };
+
+        this.state = {
+            tasks: [
+                this.makeNewTask("Тест для vercel"),
+                this.makeNewTask("Тестировать приложение ToDo"),
+                this.makeNewTask("Доработать приложение ToDo")
+            ]
+        };
+
+        this.deleteId = id => {
+            this.setState(({ tasks }) => {
+                let idx = tasks.findIndex(el => el.id === id);
+                let before = tasks.slice(0, idx);
+                let after = tasks.slice(idx + 1);
+                return {tasks: [...before, ...after]};
+            })
+        };
+
+
+        this.addNewTask = (text) => {
+            this.setState(({ tasks }) => {
+                return {tasks: [...tasks, this.makeNewTask("Empty Task Here")]};
+            })
+        };
+
+        this.onToggleParam = (id, param) => {
+            this.setState(({ tasks }) => {
+                let idx = tasks.findIndex(el => el.id === id);
+                let before = tasks.slice(0, idx);
+                let updatedEl = {...tasks[idx], [param]: !tasks[idx][param]};
+                let after = tasks.slice(idx + 1);
+                return {tasks: [...before, updatedEl, ...after]};
+            })
+        }
+
+        this.onToggleDone = (id) => {
+            this.onToggleParam(id, 'done');
+        };
+
+        this.onToggleImportant = (id) => {
+            this.onToggleParam(id, 'important');
+        };
+
+
+    }
+
+
+
+
 
     render() {
+        let doneTasks = this.state.tasks.filter(el => el.done).length;
+        let tasksToDo = this.state.tasks.length - doneTasks;
         return (
-            <section className="todoapp">
-                <header className="header">
-                    <h1>todos</h1>
-                    <input className="new-todo" placeholder="What needs to be done?" autofocus/>
-                </header>
-                <section className="main">
-                    <ul className="todo-list">
-                        <li className="completed">
-                            <div className="view">
-                                <input className="toggle" type="checkbox"/>
-                                    <label>
-                                        <span className="description">Completed task</span>
-                                        <span className="created">created 17 seconds ago</span>
-                                    </label>
-                                    <button className="icon icon-edit"></button>
-                                    <button className="icon icon-destroy"></button>
-                            </div>
-                        </li>
-                        <li className="editing">
-                            <div className="view">
-                                <input className="toggle" type="checkbox"/>
-                                    <label>
-                                        <span className="description">Editing task</span>
-                                        <span className="created">created 5 minutes ago</span>
-                                    </label>
-                                    <button className="icon icon-edit"></button>
-                                    <button className="icon icon-destroy"></button>
-                            </div>
-                            <input type="text" className="edit" value="Editing task"/>
-                        </li>
-                        <li>
-                            <div className="view">
-                                <input className="toggle" type="checkbox"/>
-                                <label>
-                                    <span className="description">Active task</span>
-                                    <span className="created">created 5 minutes ago</span>
-                                </label>
-                                <button className="icon icon-edit"></button>
-                                <button className="icon icon-destroy"></button>
-                            </div>
-                        </li>
-                    </ul>
-                    <footer className="footer">
-                        <span className="todo-count">1 items left</span>
-                        <ul className="filters">
-                            <li>
-                                <button className="selected">All</button>
-                            </li>
-                            <li>
-                                <button>Active</button>
-                            </li>
-                            <li>
-                                <button>Completed</button>
-                            </li>
-                        </ul>
-                        <button className="clear-completed">Clear completed</button>
-                    </footer>
-                </section>
-            </section>
+            <div className="app">
+                <div className="header">
+                    <h1>My Tasks to Do</h1>
+                    <AddTask addNewTask = { this.addNewTask }/>
+                </div>
+                <TasksList tasks={ this.state.tasks }
+                           onDelete={ this.deleteId }
+                           onToggleDone={ this.onToggleDone }
+                           onToggleImportant={ this.onToggleImportant }
+                />
+                <div className="footer">
+                    <TasksCount
+                        doneTasks={ doneTasks }
+                        tasksToDo={ tasksToDo }
+                    />
+                    <SearchPanel/>
+                    <TasksFilter/>
+                </div>
+            </div>
         );
     }
 }
